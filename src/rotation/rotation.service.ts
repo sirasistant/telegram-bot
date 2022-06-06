@@ -18,6 +18,14 @@ export class RotationService {
         });
     }
 
+    async list(chatId) {
+        return Rotation.findAll({
+            where: {
+                chatId,
+            },
+        });
+    }
+
     async create(chatId, rotationName, optionNames) {
         return Rotation.create({
             chatId,

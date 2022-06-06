@@ -6,7 +6,7 @@ import {
     Ctx,
     TelegrafException,
 } from 'nestjs-telegraf';
-import { Argument, Command as CommandModel } from 'src/commands/command.model';
+
 import { CommandsService } from 'src/commands/commands.service';
 import { RotationService } from './rotation.service';
 import { Context } from '../common/interfaces';
@@ -16,39 +16,8 @@ import { TelegrafExceptionFilter } from 'src/common/filters/telegraf-exception.f
 import { WithRotation } from './decorators/withRotation.decorator';
 import { Rotation } from './rotation.model';
 import { rotationDescriptionTemplate } from './templates/rotationDescription.template';
-
-const rotationCommand = new CommandModel(
-    'rotation',
-    'Track rotations',
-    [
-        new Argument('rotationName', 'The name for the rotation to operate on'),
-        new Argument('subCommand', 'The subcommand to apply'),
-        new Argument('parameters', 'Parameters of the subcommand, if any'),
-    ],
-    [
-        new CommandModel(
-            'create',
-            'Creates a new rotation',
-            [new Argument('optionNames', 'The options for the rotation')],
-            [],
-        ),
-        new CommandModel('describe', 'Describes a rotation', [], []),
-        new CommandModel('delete', 'Deletes a rotation', [], []),
-        new CommandModel('peek', 'Look at the next item of a rotation', [], []),
-        new CommandModel(
-            'pop',
-            'Rotate to the next item of a rotation',
-            [],
-            [],
-        ),
-        new CommandModel(
-            'skip',
-            'Jump over the next item of a rotation',
-            [],
-            [],
-        ),
-    ],
-);
+import { rotationCommand } from './rotation.commands';
+import { rotationListTemplate } from './templates/rotationList.template';
 
 @Update()
 @UseFilters(TelegrafExceptionFilter)
@@ -67,11 +36,11 @@ export class RotationUpdate {
         @Ctx() ctx: Context,
     ) {
         const { args } = this.commandsService.parseCommand(messageText);
-        if (args.length < 2) {
+        if (args.length < 1) {
             throw new TelegrafException('Invalid parameters');
         }
 
-        const [rotationName, subCommand, ...parameters] = args;
+        const [subCommand, ...parameters] = args;
         const { subCommands } = rotationCommand;
         if (
             !subCommands
@@ -83,13 +52,15 @@ export class RotationUpdate {
         await ctx.reply(
             await this[camelcase(`on_${subCommand}`)](
                 `${ctx.chat.id}`,
-                rotationName,
-                parameters,
+                ...parameters,
             ),
         );
     }
 
-    async onCreate(chatId, rotationName, optionNames) {
+    async onCreate(chatId, rotationName, ...optionNames) {
+        if (!rotationName) {
+            throw new TelegrafException(`Invalid rotation name`);
+        }
         if (optionNames.length < 2) {
             throw new TelegrafException(`Invalid option names: ${optionNames}`);
         }
@@ -110,6 +81,11 @@ export class RotationUpdate {
             console.error('Error creating rotation', err);
             throw new TelegrafException('Error creating rotation');
         }
+    }
+
+    async onList(chatId) {
+        const rotations = await this.rotationService.list(chatId);
+        return rotationListTemplate(rotations);
     }
 
     @WithRotation

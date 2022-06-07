@@ -1,10 +1,10 @@
 {
-  "name": "heroku-telegraf-botardo",
+  "name": "telegram-bot",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "A telegram bot.",
+  "author": "sirasistant",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { SpotifyUpdate } from './spotify.update';
+import { SpotifyUpdate } from './updates/spotify.update';
 import { CommandsModule } from '../commands/commands.module';
-import { SpotifyService } from './spotify.service';
+import { SpotifyService } from './services/spotify.service';
 
 @Module({
     providers: [SpotifyService, SpotifyUpdate],

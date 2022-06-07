@@ -7,17 +7,17 @@ import {
     TelegrafException,
 } from 'nestjs-telegraf';
 
-import { CommandsService } from 'src/commands/commands.service';
-import { RotationService } from './rotation.service';
-import { Context } from '../common/interfaces';
+import { CommandsService } from 'src/commands/services/commands.service';
+import { RotationService } from '../services/rotation.service';
+import { Context } from '../../common/interfaces';
 import { AllowedUserGuard } from 'src/common/guards/allowed-user.guard';
 import { UseFilters, UseGuards } from '@nestjs/common';
 import { TelegrafExceptionFilter } from 'src/common/filters/telegraf-exception.filter';
-import { WithRotation } from './decorators/withRotation.decorator';
-import { Rotation } from './rotation.model';
-import { rotationDescriptionTemplate } from './templates/rotationDescription.template';
+import { WithRotation } from '../decorators/withRotation.decorator';
+import { Rotation } from '../models/rotation.model';
+import { rotationDescriptionTemplate } from '../templates/rotationDescription.template';
 import { rotationCommand } from './rotation.commands';
-import { rotationListTemplate } from './templates/rotationList.template';
+import { rotationListTemplate } from '../templates/rotationList.template';
 
 @Update()
 @UseFilters(TelegrafExceptionFilter)
@@ -40,24 +40,32 @@ export class RotationUpdate {
             throw new TelegrafException('Invalid parameters');
         }
 
-        const [subCommand, ...parameters] = args;
-        const { subCommands } = rotationCommand;
-        if (
-            !subCommands
-                .map((availableSubCommand) => availableSubCommand.name)
-                .includes(subCommand)
-        ) {
-            throw new TelegrafException(`Unknown subcommand ${subCommand}`);
+        const [verbName, ...parameters] = args;
+        const verb = rotationCommand.verbs.find(
+            (candidate) => candidate.name === verbName,
+        );
+
+        if (!verb) {
+            throw new TelegrafException(`Unknown verb ${verbName}`);
         }
+
+        const verbArguments = verb.args.map((arg, index) => {
+            if (arg.isRest) {
+                return parameters.slice(index, parameters.length);
+            } else {
+                return parameters[index];
+            }
+        });
+
         await ctx.reply(
-            await this[camelcase(`on_${subCommand}`)](
+            await this[camelcase(`on_${verb.name}`)](
                 `${ctx.chat.id}`,
-                ...parameters,
+                ...verbArguments,
             ),
         );
     }
 
-    async onCreate(chatId, rotationName, ...optionNames) {
+    async onCreate(chatId, rotationName, optionNames) {
         if (!rotationName) {
             throw new TelegrafException(`Invalid rotation name`);
         }

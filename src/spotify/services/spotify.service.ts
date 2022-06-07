@@ -12,7 +12,7 @@ export class SpotifyService {
     });
     private expirationTime = 0;
 
-    async getSpotifyApi() {
+    private async getSpotifyApi() {
         if (this.expirationTime <= new Date().getTime()) {
             // Retrieve an access token.
             const response = await this.spotifyApi.clientCredentialsGrant();

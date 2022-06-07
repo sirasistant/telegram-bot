@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Command } from './command.model';
+import { Command } from '../models/command.model';
 
 const parseCommandRegex = /^\/(?<command>[^\s@]+)@?(\S+)?\s?(?<args>.*)$/;
 const parseArgsRegex = /[^\s]+/g;
@@ -30,5 +30,9 @@ export class CommandsService {
         } else {
             return null;
         }
+    }
+
+    getCommand(name) {
+        return this.commands.find((command) => command.name === name);
     }
 }

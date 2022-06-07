@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Rotation } from './rotation.model';
+import { Rotation } from '../models/rotation.model';
 import { SequelizeService } from './sequelize.service';
 
 @Injectable()

@@ -1,19 +1,12 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
 import { Update, Message, Command, Ctx } from 'nestjs-telegraf';
-import { Argument, Command as CommandModel } from 'src/commands/command.model';
 import { AllowedUserGuard } from 'src/common/guards/allowed-user.guard';
-import { CommandsService } from '../commands/commands.service';
-import { SpotifyService } from './spotify.service';
-import { listSummaryTemplate } from './templates/listSummary.template';
-import { Context } from '../common/interfaces';
+import { CommandsService } from '../../commands/services/commands.service';
+import { SpotifyService } from '../services/spotify.service';
+import { listSummaryTemplate } from '../templates/listSummary.template';
+import { Context } from '../../common/interfaces';
 import { TelegrafExceptionFilter } from 'src/common/filters/telegraf-exception.filter';
-
-const spotifyCommand = new CommandModel(
-    'spotify',
-    'Fetch statistics from a spotify playlist',
-    [new Argument('listId', 'The id for the spotify playlist')],
-    [],
-);
+import { spotifyCommand } from './spotify.commands';
 
 @Update()
 @UseFilters(TelegrafExceptionFilter)

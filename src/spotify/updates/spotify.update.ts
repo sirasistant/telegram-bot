@@ -1,5 +1,11 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
-import { Update, Message, Command, Ctx } from 'nestjs-telegraf';
+import {
+    Update,
+    Message,
+    Command,
+    Ctx,
+    TelegrafException,
+} from 'nestjs-telegraf';
 import { AllowedUserGuard } from 'src/common/guards/allowed-user.guard';
 import { CommandsService } from '../../commands/services/commands.service';
 import { SpotifyService } from '../services/spotify.service';
@@ -22,15 +28,17 @@ export class SpotifyUpdate {
     @UseGuards(AllowedUserGuard)
     async onSpotify(@Message('text') messageText: string, @Ctx() ctx: Context) {
         const { args } = this.commandsService.parseCommand(messageText);
-        if (args[0]) {
-            const listId = args[0];
-            try {
-                await ctx.reply(await this.renderListSummary(listId));
-            } catch (ignored) {
-                await ctx.reply(`Error fetching list with id ${listId}`);
-            }
-        } else {
-            await ctx.reply('Invalid parameters');
+        if (!args[0]) {
+            throw new TelegrafException('Invalid parameters');
+        }
+
+        const listId = args[0];
+        try {
+            await ctx.reply(await this.renderListSummary(listId));
+        } catch (ignored) {
+            throw new TelegrafException(
+                `Error fetching list with id ${listId}`,
+            );
         }
     }
 

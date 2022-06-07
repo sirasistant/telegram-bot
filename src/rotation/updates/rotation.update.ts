@@ -108,11 +108,6 @@ export class RotationUpdate {
     }
 
     @WithRotation
-    async onPeek(rotation: Rotation) {
-        return `Next turn of rotation ${rotation.name} is ${rotation.nextOptionName}`;
-    }
-
-    @WithRotation
     async onPop(rotation: Rotation) {
         const popOption = rotation.rotate();
         await rotation.save();

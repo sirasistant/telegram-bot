@@ -23,10 +23,6 @@ const deleteVerb = new CommandModel('delete', 'Deletes a rotation', [
     rotationNameArgument,
 ]);
 
-const peek = new CommandModel('peek', 'Look at the next item of a rotation', [
-    rotationNameArgument,
-]);
-
 const pop = new CommandModel('pop', 'Rotate to the next item of a rotation', [
     rotationNameArgument,
 ]);
@@ -46,5 +42,5 @@ export const rotationCommand = new CommandModel(
             true,
         ),
     ],
-    [create, list, describe, deleteVerb, peek, pop, skip],
+    [create, list, describe, deleteVerb, pop, skip],
 );

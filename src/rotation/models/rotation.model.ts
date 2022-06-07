@@ -34,7 +34,7 @@ export class Rotation extends Model {
         );
 
         this.setAsDone(popOption);
-        this.fillNextOption(popOption, false);
+        this.nextOptionName = this.getNextOption(popOption, false);
 
         return popOption;
     }
@@ -53,24 +53,24 @@ export class Rotation extends Model {
         this.changed('options', true);
     }
 
-    private fillNextOption(lastOption, isSkip) {
-        if (!isSkip) {
-            const isNewRotation = this.options
-                .map((option) => !option.done)
-                .reduce((acc, curr) => acc && curr, true);
-            if (isNewRotation) {
-                this.nextOptionName = this.options[0].name;
-                return;
-            }
-        }
+    private isNewRotation() {
+        return (
+            [...new Set(this.options.map((option) => option.done))].length === 1
+        );
+    }
 
-        for (let i = 1; i <= this.options.length; i++) {
-            const index =
-                (this.options.indexOf(lastOption) + i) % this.options.length;
-            const option = this.options[index];
-            if (!option.done) {
-                this.nextOptionName = option.name;
-                return;
+    private getNextOption(lastOption, isSkip) {
+        if (!isSkip && this.isNewRotation()) {
+            return this.options[0].name;
+        } else {
+            for (let i = 1; i <= this.options.length; i++) {
+                const index =
+                    (this.options.indexOf(lastOption) + i) %
+                    this.options.length;
+                const option = this.options[index];
+                if (!option.done) {
+                    return option.name;
+                }
             }
         }
     }
@@ -81,7 +81,7 @@ export class Rotation extends Model {
             (option) => option.name === skippedOptionName,
         );
 
-        this.fillNextOption(skippedOption, true);
+        this.nextOptionName = this.getNextOption(skippedOption, true);
 
         return skippedOption;
     }

@@ -48,7 +48,7 @@ export class SpotifyUpdate {
         );
         const songs = (
             await this.spotifyService.getAllSongs(listDescription)
-        ).filter((song) => song.track.type === 'track');
+        ).filter((song) => song.track?.type === 'track');
 
         const songsByAdder = {};
         const songsProcessed = {};

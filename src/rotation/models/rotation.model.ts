@@ -7,7 +7,7 @@ import {
 } from 'sequelize-typescript';
 
 export class Option {
-    constructor(public name: string, public done: boolean) {}
+    constructor(public name: string, public timesDone: number) {}
 }
 
 @Table({ modelName: 'Rotation' })
@@ -27,61 +27,41 @@ export class Rotation extends Model {
     @Column(DataType.JSONB)
     public options: Option[];
 
-    rotate() {
-        const popOptionName = this.nextOptionName;
-        const popOption = this.options.find(
-            (option) => option.name === popOptionName,
-        );
+    private findOption(name: string) {
+        return this.options.find((option) => option.name === name);
+    }
 
-        this.setAsDone(popOption);
-        this.nextOptionName = this.getNextOption(popOption, false);
+    rotate() {
+        const popOption = this.findOption(this.nextOptionName);
+
+        popOption.timesDone++;
+        this.changed('options', true);
+        this.nextOptionName = this.getNextOption(popOption).name;
 
         return popOption;
     }
 
-    private setAsDone(optionDone) {
-        optionDone.done = true;
-
-        const isRotationCompleted = this.options
-            .map((option) => option.done)
-            .reduce((acc, curr) => acc && curr, true);
-        if (isRotationCompleted) {
-            this.options.forEach((option) => {
-                option.done = false;
-            });
-        }
-        this.changed('options', true);
-    }
-
-    private isNewRotation() {
-        return (
-            [...new Set(this.options.map((option) => option.done))].length === 1
-        );
-    }
-
-    private getNextOption(lastOption, isSkip) {
-        if (!isSkip && this.isNewRotation()) {
-            return this.options[0].name;
-        } else {
-            for (let i = 1; i <= this.options.length; i++) {
-                const index =
-                    (this.options.indexOf(lastOption) + i) %
-                    this.options.length;
-                const option = this.options[index];
-                if (!option.done) {
-                    return option.name;
-                }
+    private getNextOption(lastOption: Option, afterSkip = false) {
+        const sortedOptions = this.options.slice().sort((a, b) => {
+            const timesDoneDiff = a.timesDone - b.timesDone;
+            if (timesDoneDiff == 0) {
+                return this.options.indexOf(a) - this.options.indexOf(b);
             }
+            return timesDoneDiff;
+        });
+        if (afterSkip) {
+            const index = sortedOptions.indexOf(lastOption);
+            const newIndex = (index + 1) % sortedOptions.length;
+            return sortedOptions[newIndex];
+        } else {
+            return sortedOptions[0];
         }
     }
 
     skip() {
-        const skippedOptionName = this.nextOptionName;
-        const skippedOption = this.options.find(
-            (option) => option.name === skippedOptionName,
-        );
+        const skippedOption = this.findOption(this.nextOptionName);
 
-        this.nextOptionName = this.getNextOption(skippedOption, true);
+        this.nextOptionName = this.getNextOption(skippedOption, true).name;
 
         return skippedOption;
     }

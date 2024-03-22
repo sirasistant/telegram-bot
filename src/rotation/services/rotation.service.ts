@@ -32,7 +32,7 @@ export class RotationService {
             name: rotationName,
             options: optionNames.map((optionName) => ({
                 name: optionName,
-                done: false,
+                timesDone: 0,
             })),
             nextOptionName: optionNames[0],
         });

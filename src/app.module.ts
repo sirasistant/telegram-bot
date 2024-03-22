@@ -7,15 +7,14 @@ import { SpotifyModule } from './spotify/spotify.module';
 const TelegrafModuleInstance = TelegrafModule.forRootAsync({
     useFactory: () => ({
         token: process.env.TOKEN,
-        launchOptions:
-            process.env.NODE_ENV === 'production'
-                ? {
-                      webhook: {
-                          domain: process.env.HEROKU_URL,
-                          hookPath: `/${process.env.TOKEN}`,
-                      },
-                  }
-                : undefined,
+        launchOptions: process.env.ENABLE_WEBHOOK
+            ? {
+                  webhook: {
+                      domain: process.env.HEROKU_URL,
+                      hookPath: `/${process.env.TOKEN}`,
+                  },
+              }
+            : undefined,
     }),
 });
 

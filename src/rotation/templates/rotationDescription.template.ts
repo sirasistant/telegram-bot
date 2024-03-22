@@ -7,7 +7,7 @@ Next option: {{=rotation.nextOptionName}}
 
 Options:
 {{~rotation.options:option}}\
- - {{=option.name}} {{? option.done }}✅{{?? true }}❌{{?}}
+ - {{=option.name}}: done {{=option.timesDone}} times
 {{~}}
 `,
     { strip: false, argName: 'rotation' },
